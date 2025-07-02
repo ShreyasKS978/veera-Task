@@ -1,0 +1,54 @@
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: postgres-task
+    ports:
+      - "6606:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: admin123
+      POSTGRES_DB: hr_task_management
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    restart: unless-stopped
+
+  backend:
+    build: ./Backend
+    container_name: backend-task
+    ports:
+      - "3046:3046"
+    depends_on:
+      - postgres
+    environment:
+      DB_USER: postgres
+      DB_PASSWORD: admin123
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: hr_task_management
+      PORT: 3046
+    restart: unless-stopped
+
+  frontend:
+    build: ./Frontend
+    container_name: frontend-task
+    ports:
+      - "8149:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  hr:
+    build: ./HR
+    container_name: hr-task
+    ports:
+      - "8150:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+
